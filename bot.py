@@ -1,6 +1,7 @@
 # bot.py
 import argparse
 import os
+from termios import CLNEXT
 
 import discord
 from discord import FFmpegPCMAudio
@@ -8,11 +9,12 @@ from dotenv import load_dotenv
 from discord.ext import commands,tasks
 import urllib
 import re
-import os
 import youtube_dl
 import pafy
 import requests
 
+queue = []
+isplaying = False
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
 
@@ -29,13 +31,13 @@ ytdl_format_options = {
     'default_search': 'auto',
     'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+ytdl = youtube_dl.YoutubeDL(ytdl_format_options)#set format options
 
 
 load_dotenv() #load an env
-TOKEN = os.getenv('DISCORD_TOKEN')
+TOKEN = os.getenv('DISCORD_TOKEN')#get token
 
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix='!')#set prefix
 
 @bot.command()
 async def test(ctx, arg):
@@ -54,6 +56,7 @@ async def join(ctx):
 async def leave(ctx):
     channel = ctx.guild.voice_client
     await channel.disconnect()
+    isplaying = False
     await ctx.send('Bye bye :wave:')
 
 @bot.command(name='play', help='Tells the bot to join the voice channel, and play music')
@@ -63,21 +66,22 @@ async def play(ctx, msg):
         return
     else:
         if msg:
-            channel = ctx.message.author.voice.channel
-            await channel.connect()
-            
-            server = ctx.message.guild
-            voice_channel = server.voice_client
+            try:
+                await join(ctx=ctx)
+            finally:
+                isplaying = True
+
+                server = ctx.message.guild
+                voice_channel = server.voice_client
 
 
-            song = pafy.new(msg)  # creates a new pafy object
-            audio = song.getbestaudio()  # gets an audio source
-            
-            
-            
-            voice_channel.play(discord.FFmpegPCMAudio(source=audio.url, **FFMPEG_OPTIONS))  # play the source
-            
-            await ctx.send("Currently playing:")
-            await ctx.send(msg)
+                song = pafy.new(msg)  # creates a new pafy object
+                audio = song.getbestaudio()  # gets an audio source
 
+                queue.append(msg)
+
+                await ctx.send("Currently playing:")
+                await ctx.send(msg)
+            
+                voice_channel.play(discord.FFmpegPCMAudio(source=audio.url, **FFMPEG_OPTIONS))  # play the source
 bot.run(TOKEN) #join server as bot
