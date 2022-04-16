@@ -91,19 +91,13 @@ async def add(ctx, msg):
 async def play(ctx):
     server = ctx.message.guild
     voice_channel = server.voice_client
-    i = 0
-    while i <= (len(queue) - 1):
-        if not ctx.voice_client.is_playing():
-            await ctx.send("On a headphones right now: " + queue[1])
-            voice_channel.stop()
-            voice_channel.play(discord.FFmpegPCMAudio(source=queue[i], **FFMPEG_OPTIONS))
-        else:
-            await ctx.send(i)
-            while ctx.voice_client.is_playing():
-                time.sleep(5)
-
-            voice_channel.play(discord.FFmpegPCMAudio(source=queue[i], **FFMPEG_OPTIONS))
+    for i in range(len(queue)):
         await ctx.send(i)
-        i += 1
+        while ctx.voice_client.is_playing():
+            await asyncio.sleep(5)
+        source = discord.FFmpegPCMAudio(source=queue[i], **FFMPEG_OPTIONS)
+        voice_channel.play(source=source, after=voice_channel.stop())
+        time.sleep(2)
+        await ctx.send(i)
 
 bot.run(TOKEN) #join server as bot
