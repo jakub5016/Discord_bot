@@ -1,7 +1,11 @@
 # bot.py
 import argparse
 import os
+from socket import timeout
 from termios import CLNEXT
+import time
+from waiting import wait, TimeoutExpired
+import asyncio
 
 import discord
 from discord import FFmpegPCMAudio
@@ -14,7 +18,7 @@ import pafy
 import requests
 
 queue = []
-isplaying = False
+queue_time = []
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
 
@@ -56,32 +60,50 @@ async def join(ctx):
 async def leave(ctx):
     channel = ctx.guild.voice_client
     await channel.disconnect()
-    isplaying = False
     await ctx.send('Bye bye :wave:')
+    queue.clear()
+    queue_time.clear()
 
-@bot.command(name='play', help='Tells the bot to join the voice channel, and play music')
-async def play(ctx, msg):
+@bot.command(name='add', help='Adding song to queue')
+async def add(ctx, msg):
     if not ctx.message.author.voice:
         await ctx.send("Sorry but you're not connected to any channel")
         return
     else:
-        if msg:
-            try:
-                await join(ctx=ctx)
-            finally:
-                isplaying = True
+        try:
+            await join(ctx=ctx)
+        finally:
 
-                server = ctx.message.guild
-                voice_channel = server.voice_client
+            server = ctx.message.guild
+            voice_channel = server.voice_client
 
 
-                song = pafy.new(msg)  # creates a new pafy object
-                audio = song.getbestaudio()  # gets an audio source
+            song = pafy.new(msg)  # creates a new pafy object
+            audio = song.getbestaudio()  # gets an audio source
 
-                queue.append(msg)
+            queue.append(audio.url)
+            queue_time.append(song.length)
 
-                await ctx.send("Currently playing:")
-                await ctx.send(msg)
-            
-                voice_channel.play(discord.FFmpegPCMAudio(source=audio.url, **FFMPEG_OPTIONS))  # play the source
+            await ctx.send("Adding to queue:")
+            await ctx.send(song.title)
+
+@bot.command(name='play', help='Adding song to queue')
+async def play(ctx):
+    server = ctx.message.guild
+    voice_channel = server.voice_client
+    i = 0
+    while i <= (len(queue) - 1):
+        if not ctx.voice_client.is_playing():
+            await ctx.send("On a headphones right now: " + queue[1])
+            voice_channel.stop()
+            voice_channel.play(discord.FFmpegPCMAudio(source=queue[i], **FFMPEG_OPTIONS))
+        else:
+            await ctx.send(i)
+            while ctx.voice_client.is_playing():
+                time.sleep(5)
+
+            voice_channel.play(discord.FFmpegPCMAudio(source=queue[i], **FFMPEG_OPTIONS))
+        await ctx.send(i)
+        i += 1
+
 bot.run(TOKEN) #join server as bot
