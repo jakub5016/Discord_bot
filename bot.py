@@ -70,10 +70,17 @@ async def leave(ctx):
     queue_titles.clear()
 
 @bot.command(name='play', help='Adding song to queue')
-async def add(ctx, msg):
+async def add(ctx, *msg_got):
+    msg = "" #We create a msg form messages we got
+    i = 0
+    while i < len(msg_got):
+        msg = msg + msg_got[i] + "+"
+        i += 1
+        
     if not ctx.message.author.voice:
         await ctx.send("Sorry but you're not connected to any channel")
         return
+    
     else:
         try:
             await join(ctx=ctx)
@@ -152,4 +159,5 @@ async def queue_check(ctx):
 async def skip_song(ctx):
     global wantToSkip
     wantToSkip= True
+
 bot.run(TOKEN) #join server as bot
