@@ -1,22 +1,15 @@
 # bot.py
-import argparse
-from glob import glob
 import os
-from socket import timeout
-from termios import CLNEXT
 import time
-from waiting import wait, TimeoutExpired
 import asyncio
 
 import discord
-from discord import FFmpegPCMAudio
 from dotenv import load_dotenv
-from discord.ext import commands,tasks
+from discord.ext import commands
 import urllib
 import re
 import youtube_dl
 import pafy
-import requests
 
 # Queue 
 queue = []
@@ -27,22 +20,6 @@ wantToSkip = False
 
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
-
-# Youtube settings 
-ytdl_format_options = {
-    'format': 'bestaudio/best',
-    'restrictfilenames': True,
-    'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0' # Bind to ipv4 since ipv6 addresses cause issues sometimes
-}
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)# Set format options
-
 
 load_dotenv() # Load an env
 TOKEN = os.getenv('DISCORD_TOKEN')# Get token
