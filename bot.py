@@ -69,7 +69,7 @@ async def leave(ctx):
     queue_time.clear()
     queue_titles.clear()
 
-@bot.command(name='add', help='Adding song to queue')
+@bot.command(name='play', help='Adding song to queue')
 async def add(ctx, msg):
     if not ctx.message.author.voice:
         await ctx.send("Sorry but you're not connected to any channel")
@@ -82,8 +82,16 @@ async def add(ctx, msg):
             server = ctx.message.guild
             voice_channel = server.voice_client
 
+            try:
+                song = pafy.new(msg)  # creates a new pafy object
+            except:
+                
+                html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + msg)
+                video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
 
-            song = pafy.new(msg)  # creates a new pafy object
+                song_link = "https://www.youtube.com/watch?v=" + video_ids[0]
+                song = pafy.new(song_link)
+
             audio = song.getbestaudio()  # gets an audio source
 
             queue.append(audio.url)
