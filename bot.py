@@ -24,6 +24,8 @@ wantToSkip = False
 # Global var to check if you want to randomize queue
 wantToRandom = False
 
+# Global var to check where we are in queue
+currentSong = 0
 
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
 
@@ -147,7 +149,8 @@ async def play(ctx):
 
     theteIsMore = True # Var to chck if there is more songs in queue
     global wantToSkip # Acces to global var
-    i = 0 
+    global currentSong 
+    currentSong = 0
 
     # Little disclamer, we always want bot to wait for next song
     # even when it's no more in queue right now.
@@ -160,16 +163,16 @@ async def play(ctx):
         while (ctx.voice_client.is_playing() and (not wantToSkip)):
             await asyncio.sleep(1) #Waiting for end of currnet song
         
-        if ((i >= len(queue)) and (not wantToRandom)):
+        if ((currentSong >= len(queue)) and (not wantToRandom)):
             theteIsMore = False
 
-        if ((wantToRandom) and (i == len(queue))):
-          queue.append(await random_song(queue_urls[i-1]))
+        if ((wantToRandom) and (currentSong == len(queue))):
+          queue.append(await random_song(queue_urls[currentSong-1]))
           await ctx.send("I've selected something special for you :smirk:")
-          await ctx.send(queue_urls[i])
+          await ctx.send(queue_urls[currentSong])
   
         if wantToSkip: # If you want to skip there is exception
-            if ((i == len(queue)) and (not wantToRandom)): # If you are at the end, and you don't 
+            if ((currentSong == len(queue)) and (not wantToRandom)): # If you are at the end, and you don't 
                 queue.clear()                              # want a random song next just clear queue
                 queue_urls.clear()
                 queue_titles.clear()
@@ -177,7 +180,7 @@ async def play(ctx):
             wantToSkip = False # Set to false to prevent stopping the loop
         
         try: # Try to play next song
-            source = discord.FFmpegPCMAudio(source=queue[i], **FFMPEG_OPTIONS)
+            source = discord.FFmpegPCMAudio(source=queue[currentSong], **FFMPEG_OPTIONS)
             voice_channel.play(source=source, after=voice_channel.stop())
         except: # If you can't probably it's end of a queue (or an error)
                 # so clear a queue
@@ -185,7 +188,7 @@ async def play(ctx):
             queue_urls.clear()
             queue_titles.clear()
         finally:
-            i += 1
+            currentSong += 1
             time.sleep(2) # Wait for a moment after changing a song
                           # if not, somtimes it generate error
     
@@ -200,8 +203,13 @@ async def queue_check(ctx):
     Returns:
       Nothing
     """ 
-    for i in range(len(queue_titles)):
-        await ctx.send(str(i+1) + ' ' + queue_titles[i])
+    global currentSong
+    i = currentSong
+    j = 0
+    while i <= len(queue_titles):
+        await ctx.send(str(j+1) + ' ' + queue_titles[i-1])
+        i = i + 1
+        j = j + 1
 
 @bot.command(name='skip', help='Skip a current song')
 async def skip_song(ctx):
@@ -243,7 +251,7 @@ async def random_song(song_url):
   video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
   
   #Only now we return one of tree first songs
-  song_number = random.randint(2, 6)
+  song_number = random.randint(2, 5)
 
   song_link = "https://www.youtube.com/watch?v=" + video_ids[-(song_number)]
 
