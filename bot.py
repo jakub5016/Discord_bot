@@ -101,6 +101,7 @@ async def add(ctx, *msg_got):
 
             try: # If it's a url
                 song = pafy.new(msg)  # Creates a new pafy object
+                queue_urls.append(msg)
             except: #If it's just worlds
                 # Make a html version of site form url 
                 html = urllib.request.urlopen("https://www.youtube.com/results?search_query=" + msg)
@@ -229,7 +230,10 @@ async def random_command(ctx):
   """ 
   global wantToRandom
   wantToRandom = True
-  await ctx.send("Random mode is on!")
+  if wantToRandom:
+    await ctx.send("Random mode is on!")
+  else:
+    await ctx.send("Random mode is off!")
 
 async def random_song(song_url):
   global queue_titles
