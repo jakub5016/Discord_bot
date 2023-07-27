@@ -35,7 +35,8 @@ with open('TOKEN.txt', 'r') as file:
     data = file.readline().replace('\n', '')
     TOKEN = data[6:]
 
-bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())# Set prefix
+
+bot = commands.Bot(command_prefix='!')# Set prefix
 
 
 @bot.command(name='join', help='Tells the bot to join the voice channel')

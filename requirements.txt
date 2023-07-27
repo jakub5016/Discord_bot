@@ -1,5 +1,5 @@
 python-dotenv==1.0.0
 pafy==0.5.5
 youtube-dl==2021.12.17
-discord=2.3.1
-pynacl=1.5.0
+nextcord==2.5.0
+wavelinkcord==2.5.1

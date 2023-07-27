@@ -6,3 +6,6 @@ Musician is an discord bot in python. He plays music on voice chanels.
 1. To install dependecies run ``` pip install -r requirements.txt ```
 
 1. To run type ``` python bot.py ```
+
+## Bibliography
+1. https://github.com/Zyb3rWolfi/Wavelinkcord
